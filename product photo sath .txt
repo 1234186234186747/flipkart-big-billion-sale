@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipkart | Big Billion Days Sale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f3f6; font-family: Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .fk-blue { background-color: #2874f0; }
+        .img-box { height: 160px; display: flex; align-items: center; justify-content: center; background: #fff; padding: 10px; }
+        .img-box img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .color-dot { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #e0e0e0; cursor: pointer; transition: 0.2s; }
+        .color-dot.active { border: 2px solid #2874f0; transform: scale(1.1); box-shadow: 0 0 8px rgba(40,116,240,0.4); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-up { animation: slideUp 0.3s ease-out; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <header class="fk-blue py-3 px-4 sticky top-0 z-50 text-white flex justify-between items-center shadow-md">
+        <div class="flex flex-col">
+            <span class="text-2xl font-black italic leading-none">Flipkart</span>
+            <span class="text-[10px] text-yellow-300 font-bold italic">Plus <i class="fa-solid fa-star text-[8px]"></i></span>
+        </div>
+        <div class="flex gap-5 text-lg">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+    </header>
+
+    <div class="bg-[#212121] text-white text-center py-2 font-bold text-xs sticky top-[56px] z-40 border-b-2 border-orange-500">
+        SALE ENDS IN: <span id="timer" class="text-yellow-400">09:59:59</span>
+    </div>
+
+    <main class="p-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2" id="grid"></main>
+
+    <div id="pModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-3xl overflow-hidden max-h-[92vh] flex flex-col animate-up">
+            <div class="p-4 border-b flex justify-between items-center bg-white sticky top-0">
+                <span class="font-bold text-gray-800 uppercase text-xs">Product Details</span>
+                <button onclick="closeModal()" class="text-3xl text-gray-400 px-2">&times;</button>
+            </div>
+            
+            <div class="overflow-y-auto p-5 flex-1 bg-white">
+                <div class="flex flex-col items-center">
+                    <div class="h-52 w-full flex items-center justify-center border rounded-2xl p-4 mb-4 bg-gray-50">
+                        <img id="mImg" src="" class="max-h-full">
+                    </div>
+                    <h2 id="mName" class="font-bold text-lg text-center leading-tight"></h2>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span id="mPrice" class="text-3xl font-black text-gray-900"></span>
+                        <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" class="h-5">
+                    </div>
+                </div>
+
+                <div id="colorSection" class="mt-6 border-t pt-5">
+                    <p class="text-[10px] font-bold text-gray-400 text-center uppercase tracking-widest mb-3">Select Color</p>
+                    <div id="colorOptions" class="flex gap-4 justify-center"></div>
+                    <p id="colorName" class="text-center text-blue-600 font-bold mt-2 text-sm italic"></p>
+                </div>
+
+                <div class="mt-6 border-t pt-5 space-y-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Delivery Address</p>
+                    <input type="text" id="uName" placeholder="Full Name" class="w-full border p-3 rounded-lg outline-none focus:ring-1 focus:ring-blue-500">
+                    <input type="tel" id="uPhone" placeholder="Mobile Number" class="w-full border p-3 rounded-lg outline-none focus:ring-1 focus:ring-blue-500">
+                    <textarea id="uAddr" placeholder="Complete Address" class="w-full border p-3 rounded-lg outline-none h-20 focus:ring-1 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="my-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex justify-between items-center">
+                    <span class="font-bold text-gray-600 text-xs">PAYABLE AMOUNT</span>
+                    <span id="finalP" class="text-2xl font-black text-blue-700"></span>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white border-t">
+                <button onclick="pay()" class="w-full bg-[#fb641b] text-white py-4 font-black rounded-lg uppercase shadow-xl text-lg active:scale-95 transition">Confirm Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 150 Products Data Source
+        const fkData = [
+            {
+                name: "Apple iPhone 16 Pro Max (Titanium)",
+                price: 689,
+                img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/b/f/5/-original-imahggexm5yafhez.jpeg?q=70",
+                variants: [
+                    {color: "Desert Titanium", hex: "#beafa0", img: "https://vlebazaar.in/image/cache/catalog//B0DGHSTPB9/Apple-iPhone-16-Pro-Max-256-GB-Desert-Titanium-1000x1000.jpg"},
+                    {color: "Black Titanium", hex: "#333333", img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/w/z/h/-original-imahggetkf6y67sr.jpeg?q=70"}
+                ]
+            },
+            {
+                name: "Samsung Galaxy S24 Ultra 5G",
+                price: 729,
+                img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/w/r/z/-original-imahgfmysgtszenh.jpeg?q=70",
+                variants: [
+                    {color: "Titanium Gray", hex: "#8e8e8e", img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/w/r/z/-original-imahgfmysgtszenh.jpeg?q=70"},
+                    {color: "Violet", hex: "#534d61", img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/j/m/z/-original-imahgfmxumntk7sy.jpeg?q=70"}
+                ]
+            },
+            {
+                name: "Apple AirPods Pro (2nd Gen)",
+                price: 99,
+                img: "https://rukminim2.flixcart.com/image/612/612/xif0q/headphone/j/0/o/-original-imagtcfghamt7x4z.jpeg?q=70",
+                variants: [{color: "White", hex: "#ffffff", img: "https://www.flipkart.com/mgt-2nd-generation-touch-bass-deep-audio-usb-c-bluetooth/p/itmb3c40d5675eef?pid=ACCHFWYQDYCV7PR4&lid=LSTACCHFWYQDYCV7PR4LCKOYV&marketplace=FLIPKART&q=Apple+AirPods+Pro+%282nd+Gen%29&store=0pm%2Ffcn%2F821&srno=s_1_5&otracker=search&otracker1=search&fm=Search&iid=56515dde-4394-45d9-bc77-46be8e761b4c.ACCHFWYQDYCV7PR4.SEARCH&ppt=sp&ppn=sp&ssid=5udbds3jo00000001766670595540&qH=b371be9822ee1ba7"}]
+            },
+            {
+                name: "Fire-Boltt Phoenix Smart Watch",
+                price: 99,
+                img: "https://rukminim2.flixcart.com/image/612/612/xif0q/smartwatch/j/j/g/-original-imah6efgh9ezfhdn.jpeg?q=70",
+                variants: [{color: "Black", hex: "#000000", img: "https://m.media-amazon.com/images/I/61y2VVWlxDL._SL1500_.jpg"}]
+            },
+            {
+                name: "Apple iPhone 15 (Blue, 128GB)",
+                price: 389,
+                img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/k/l/l/-original-imagtc5fz9spysyk.jpeg?q=70",
+                variants: [{color: "Blue", hex: "#d1e8f2", img: "https://m.media-amazon.com/images/I/71d7rfSl0wL._SL1500_.jpg"}]
+            },
+            {
+                name: "OnePlus Bullets Wireless Z2 Bluetooth  (Jazz Green, In the Ear)",
+                price: 249,
+                img: "https://rukminim2.flixcart.com/image/612/612/xif0q/headphone/7/a/8/bullets-wireless-z2-oneplus-original-imagpgskyzj6zhte.jpeg?q=70",
+                variants: [{color: "Black", hex: "#000000", img: "https://m.media-amazon.com/images/I/51Xv68yBbkL._SL1200_.jpg"}]
+            },
+            {
+                name: "JBL Flip 6 Bluetooth Speaker",
+                price: 149,
+                img: "https://rukminim2.flixcart.com/image/612/612/xif0q/speaker/d/0/v/-original-imahdxtpeqszray4.jpeg?q=70",
+                variants: [{color: "Blue", hex: "#0000ff", img: "https://m.media-amazon.com/images/I/61Gf9A39DPL._SL1500_.jpg"}]
+            },
+            {
+                name: "Apple iPhone 17 Pro Max (Deep Blue, 256 GB)",
+                price: 1899,
+                img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/f/r/h/-original-imahft6chdhxfwhj.jpeg?q=70",
+                variants: [{color: "Celadon Marble", hex: "#d0f0c0", img: "https://m.media-amazon.com/images/I/61vYfG6X-rL._SL1500_.jpg"}]
+           
+            },
+            {
+                name: "Samsung Galaxy S24 FE 5G (Graphite, 256 GB)  (8 GB RAM)",
+                price: 799,
+                img: "https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/g/d/g/-original-imahfw4ahckefvxe.jpeg?q=70",
+                variants: [{color: "Black", hex: "#000000", img: "https://m.media-amazon.com/images/I/510+S97BCmL._SL1500_.jpg"}]
+            }
+        ];
+
+        let activeAmt = 0;
+
+        function render() {
+            const grid = document.getElementById('grid');
+            let html = '';
+            // Render 150 Products
+            for(let i=0; i<150; i++) {
+                let p = fkData[i % fkData.length]; // Loop through the data
+                html += `
+                <div class="bg-white border rounded p-2 flex flex-col cursor-pointer shadow-sm active:scale-95 transition" onclick='openModal(${JSON.stringify(p)})'>
+                    <div class="img-box"><img src="${p.img}"></div>
+                    <div class="mt-2">
+                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tight">Big Billion Deal</p>
+                        <h2 class="text-[11px] font-medium text-gray-700 truncate">${p.name}</h2>
+                        <div class="flex items-center gap-1 mt-1">
+                            <span class="font-black text-sm text-gray-900">₹${p.price.toLocaleString()}</span>
+                            <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" class="h-3">
+                        </div>
+                    </div>
+                </div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        function openModal(p) {
+            document.getElementById('mName').innerText = p.name;
+            document.getElementById('mPrice').innerText = "₹" + p.price.toLocaleString();
+            document.getElementById('finalP').innerText = "₹" + p.price.toLocaleString();
+            document.getElementById('mImg').src = p.img;
+            activeAmt = p.price;
+
+            const colorOpts = document.getElementById('colorOptions');
+            const colorNameText = document.getElementById('colorName');
+            
+            if(p.variants && p.variants.length > 1) {
+                document.getElementById('colorSection').style.display = 'block';
+                colorOpts.innerHTML = p.variants.map((v, index) => `
+                    <div class="color-dot ${index === 0 ? 'active' : ''}" 
+                         style="background-color: ${v.hex}" 
+                         onclick="selectColor('${v.img}', '${v.color}', this)">
+                    </div>
+                `).join('');
+                colorNameText.innerText = p.variants[0].color;
+            } else {
+                document.getElementById('colorSection').style.display = 'none';
+            }
+
+            document.getElementById('pModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function selectColor(imgUrl, name, element) {
+            document.getElementById('mImg').src = imgUrl;
+            document.getElementById('colorName').innerText = name;
+            document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('pModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function pay() {
+            const name = document.getElementById('uName').value;
+            const phone = document.getElementById('uPhone').value;
+            const addr = document.getElementById('uAddr').value;
+
+            if(!name || !phone || !addr) {
+                return alert("Pehle poora naam aur address bhariye!");
+            }
+            window.location.href = `upi://pay?pa=8709615634-w350@ybl&pn=Flipkart&am=${activeAmt}&cu=INR`;
+        }
+
+        // Timer Logic
+        let h=9, m=59, s=59;
+        setInterval(() => {
+            s--; if(s<0){s=59; m--;} if(m<0){m=59; h--;}
+            document.getElementById('timer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }, 1000);
+
+        render();
+    </script>
+</body>
+</html>
